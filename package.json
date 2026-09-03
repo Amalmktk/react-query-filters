@@ -1,6 +1,6 @@
 {
   "name": "react-query-filters",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Headless React hook for search, filters, sorting, and pagination that stay synchronized with the URL.",
   "keywords": [
     "react",
@@ -11,7 +11,19 @@
     "search",
     "pagination",
     "sorting",
-    "nextjs"
+    "nextjs",
+    "searchParams",
+    "query",
+    "query-string",
+    "url-params",
+    "url-parameters",
+    "url-query",
+    "url-query-params",
+    "query-builder",
+    "query-string-builder",
+    "query-string-parser",
+    "query-string-serializer",
+    "react-filter"
   ],
   "author": "Amal M",
   "license": "MIT",
