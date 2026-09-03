@@ -1,6 +1,6 @@
 {
   "name": "react-query-filters",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Headless React hook for search, filters, sorting, and pagination that stay synchronized with the URL.",
   "keywords": [
     "react",
