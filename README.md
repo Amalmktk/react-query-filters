@@ -33,6 +33,10 @@ const { state, setFilter } = useQueryFilters();
 
 ```bash
 npm install react-query-filters
+# or
+yarn add react-query-filters
+# or
+pnpm add react-query-filters
 ```
 
 React 18 or 19 is a peer dependency.
