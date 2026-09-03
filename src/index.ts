@@ -13,3 +13,19 @@ export { createDefaultQueryState, isEqualQueryState } from "./core/utils.js";
 
 export { useQueryFilters } from "./react/useQueryFilters.js";
 export type { UseQueryFiltersOptions, UseQueryFiltersResult } from "./react/useQueryFilters.js";
+export { QueryFiltersProvider, useQueryFiltersContext } from "./react/context.js";
+export type { QueryFiltersProviderProps } from "./react/context.js";
+
+export { QuerySearch } from "./components/QuerySearch.js";
+export type { QuerySearchProps, QuerySearchRenderProps } from "./components/QuerySearch.js";
+export { QuerySelect } from "./components/QuerySelect.js";
+export type { QuerySelectProps, QuerySelectRenderProps } from "./components/QuerySelect.js";
+export { QueryPagination } from "./components/QueryPagination.js";
+export type {
+  QueryPaginationProps,
+  QueryPaginationRenderProps,
+} from "./components/QueryPagination.js";
+export { QuerySort } from "./components/QuerySort.js";
+export type { QuerySortProps, QuerySortRenderProps } from "./components/QuerySort.js";
+export { QueryReset } from "./components/QueryReset.js";
+export type { QueryResetProps, QueryResetRenderProps } from "./components/QueryReset.js";

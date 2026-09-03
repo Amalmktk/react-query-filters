@@ -15,6 +15,14 @@
   ],
   "author": "Amal M",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Amalmktk/react-query-filters.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Amalmktk/react-query-filters/issues"
+  },
+  "homepage": "https://github.com/Amalmktk/react-query-filters#readme",
   "type": "module",
   "sideEffects": false,
   "main": "./dist/index.cjs",
@@ -35,7 +43,8 @@
     "dev": "tsup --watch",
     "test": "vitest run",
     "test:watch": "vitest",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "prepublishOnly": "npm run typecheck && npm test && npm run build"
   },
   "peerDependencies": {
     "react": "^18.0.0 || ^19.0.0"
