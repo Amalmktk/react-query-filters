@@ -65,6 +65,11 @@ describe("serializeQueryState", () => {
     expect(query).toBe("");
   });
 
+  it("percent-encodes special characters and unicode", () => {
+    const query = serializeQueryState(baseState({ search: "hello world é", filters: { status: "a&b" } }));
+    expect(query).toBe("search=hello+world+%C3%A9&status=a%26b");
+  });
+
   it("combines search, filters, sort, and pagination", () => {
     const query = serializeQueryState(
       baseState({

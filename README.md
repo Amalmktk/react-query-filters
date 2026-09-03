@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/Amalmktk/react-query-filters/actions/workflows/ci.yml/badge.svg)](https://github.com/Amalmktk/react-query-filters/actions/workflows/ci.yml)
 
-Headless React hook for search, filters, sorting, and pagination that stay synchronized with the URL.
+Headless URL state management for React. Keep search, filters, sorting, and pagination synchronized with the URL — without imposing any UI or styling.
 
 ```
 /products
@@ -14,7 +14,21 @@ becomes
 /products?search=laptop&status=active&sort=price:desc&page=2
 ```
 
-so filtered views are shareable, bookmarkable, and survive a page refresh — with zero UI opinions imposed on you.
+so filtered views are shareable, bookmarkable, and survive a page refresh.
+
+## Features
+
+- 🔎 Search state synchronized with the URL
+- 🎛️ Arbitrary filters — any query param you name becomes a filter
+- ↕️ Sorting with `asc → desc → cleared` cycling
+- 📄 Pagination
+- 🔗 Shareable, bookmarkable URLs
+- 🔄 Browser back/forward support
+- ⚛️ React 18 & 19
+- 🎨 Completely headless — bring your own UI
+- 🧩 `QueryFiltersProvider` for sharing one state across components
+- 🛠️ Framework-agnostic core utilities (`parseQueryState`, `serializeQueryState`)
+- 📦 TypeScript-first, zero runtime dependencies
 
 ## Why headless
 
@@ -181,13 +195,30 @@ All of them must be rendered inside a `QueryFiltersProvider`.
 ## Filter value encoding
 
 - Reserved keys (`search`, `sort`, `page`, `pageSize`) are parsed as such; every other query param becomes a filter.
-- A filter value containing a comma (`tags=a,b,c`) is parsed as a string array.
+- A filter value containing a comma (`tags=a,b,c`) is parsed as a string array. A filter whose own value legitimately contains a comma (e.g. `"eco,friendly"`) is indistinguishable from a two-item array under this convention — a known limitation of the comma-separated encoding, not a bug.
 - `null`, `""`, and empty arrays are omitted from the URL when serialized.
+- Invalid `page`/`pageSize` values (non-numeric, zero, negative) fall back to their defaults; a decimal like `page=3.5` is truncated to `3`.
+- An unrecognized or missing sort `direction` (e.g. `sort=price` or `sort=price:up`) defaults to `desc`.
+
+## Environment & framework support
+
+- **React**: 18 or 19 (peer dependency).
+- **Browser**: anything with `URLSearchParams` and the History API (`pushState`/`replaceState`, `popstate`) — all evergreen browsers.
+- **Client-only**: `useQueryFilters`, `QueryFiltersProvider`, and the headless components all read `window.location`/`window.history`, so they only run in the browser. The package does not embed a `"use client"` directive in its build output — add it yourself in the file where you call the hook, as shown in every example above.
+- **SSR**: on a server-rendered first pass (no `window`), `useQueryFilters` initializes to the default empty state, then reads the real URL once mounted on the client. If you need the *server-rendered* HTML itself to reflect the URL's filters (e.g. for SEO or to avoid a flash of default state), read the query params yourself from the framework (e.g. Next.js's `searchParams` page prop) and use the framework-agnostic `parseQueryState` for that — it has no dependency on the DOM.
+
+### Next.js App Router
+
+```tsx
+"use client";
+
+import { useQueryFilters } from "react-query-filters";
+```
+
+The framework-agnostic core (`parseQueryState`, `serializeQueryState`) has no browser dependency and can be used inside Server Components — for example, parsing a page's `searchParams` prop server-side.
 
 ## Roadmap
 
-- [x] Optional headless UI primitives (`QuerySearch`, `QuerySelect`, `QueryPagination`, `QuerySort`, `QueryReset`)
-- [x] `QueryFiltersProvider` for sharing one query state across multiple components
 - [ ] Date/range filters
 - [ ] Debounced search
 - [ ] `localStorage` persistence

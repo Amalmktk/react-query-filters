@@ -25,6 +25,24 @@ describe("parseQueryState", () => {
     expect(state.filters.tags).toEqual(["a", "b", "c"]);
   });
 
+  it("does not split commas inside the search term, only filters", () => {
+    const state = parseQueryState("search=salt,pepper&tags=a,b");
+    expect(state.search).toBe("salt,pepper");
+    expect(state.filters.tags).toEqual(["a", "b"]);
+  });
+
+  it("treats an explicit empty value as an empty string, not absent", () => {
+    const state = parseQueryState("search=&status=");
+    expect(state.search).toBe("");
+    expect(state.filters.status).toBe("");
+  });
+
+  it("decodes special characters and unicode", () => {
+    const state = parseQueryState("search=hello%20world%20%C3%A9&status=a%26b");
+    expect(state.search).toBe("hello world é");
+    expect(state.filters.status).toBe("a&b");
+  });
+
   it("parses sort as field:direction", () => {
     expect(parseQueryState("sort=price:desc").sort).toEqual({
       field: "price",
@@ -34,6 +52,12 @@ describe("parseQueryState", () => {
 
   it("defaults sort direction to desc when omitted or invalid", () => {
     expect(parseQueryState("sort=price").sort).toEqual({ field: "price", direction: "desc" });
+    expect(parseQueryState("sort=price:up").sort).toEqual({ field: "price", direction: "desc" });
+  });
+
+  it("treats a sort value with no field as unsorted", () => {
+    expect(parseQueryState("sort=:asc").sort).toBeNull();
+    expect(parseQueryState("sort=").sort).toBeNull();
   });
 
   it("parses page and pageSize", () => {
@@ -48,6 +72,14 @@ describe("parseQueryState", () => {
       page: 1,
       pageSize: 20,
     });
+  });
+
+  it("falls back to the default for page=0 (not a valid 1-based page)", () => {
+    expect(parseQueryState("page=0").pagination.page).toBe(1);
+  });
+
+  it("truncates a decimal page number", () => {
+    expect(parseQueryState("page=3.9").pagination.page).toBe(3);
   });
 
   it("respects custom defaultPage/defaultPageSize options", () => {
