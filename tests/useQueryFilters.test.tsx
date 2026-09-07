@@ -55,6 +55,59 @@ describe("useQueryFilters", () => {
     expect(result.current.state.filters).toEqual({ role: "admin" });
   });
 
+  it("setRangeFilter sets both sides and resets the page", () => {
+    setLocation("/products?page=3");
+    const { result } = renderHook(() => useQueryFilters());
+
+    act(() => result.current.setRangeFilter("price", { from: "10", to: "100" }));
+
+    expect(result.current.getRangeFilter("price")).toEqual({ from: "10", to: "100" });
+    expect(result.current.state.pagination.page).toBe(1);
+    expect(window.location.search).toBe("?priceFrom=10&priceTo=100");
+  });
+
+  it("setRangeFilter updates only the side passed, leaving the other untouched", () => {
+    const { result } = renderHook(() => useQueryFilters());
+
+    act(() => result.current.setRangeFilter("price", { from: "10", to: "100" }));
+    act(() => result.current.setRangeFilter("price", { from: "20" }));
+
+    expect(result.current.getRangeFilter("price")).toEqual({ from: "20", to: "100" });
+  });
+
+  it("setRangeFilter clears a side when passed null, supporting open-ended ranges", () => {
+    const { result } = renderHook(() => useQueryFilters());
+
+    act(() => result.current.setRangeFilter("price", { from: "10", to: "100" }));
+    act(() => result.current.setRangeFilter("price", { to: null }));
+
+    expect(result.current.getRangeFilter("price")).toEqual({ from: "10", to: null });
+    expect(window.location.search).toBe("?priceFrom=10");
+  });
+
+  it("removeRangeFilter clears both sides in one update", () => {
+    const { result } = renderHook(() => useQueryFilters());
+
+    act(() => result.current.setRangeFilter("price", { from: "10", to: "100" }));
+    act(() => result.current.removeRangeFilter("price"));
+
+    expect(result.current.getRangeFilter("price")).toEqual({ from: null, to: null });
+    expect(window.location.search).toBe("");
+  });
+
+  it("keeps independent range filters under different names separate", () => {
+    const { result } = renderHook(() => useQueryFilters());
+
+    act(() => result.current.setRangeFilter("price", { from: "10", to: "100" }));
+    act(() => result.current.setRangeFilter("createdAt", { from: "2024-01-01", to: "2024-01-31" }));
+
+    expect(result.current.getRangeFilter("price")).toEqual({ from: "10", to: "100" });
+    expect(result.current.getRangeFilter("createdAt")).toEqual({
+      from: "2024-01-01",
+      to: "2024-01-31",
+    });
+  });
+
   it("setSort toggles asc -> desc -> cleared for the same field", () => {
     const { result } = renderHook(() => useQueryFilters());
 

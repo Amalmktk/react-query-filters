@@ -4,6 +4,7 @@ import { QueryFiltersProvider } from "../src/react/context.js";
 import { QuerySearch } from "../src/components/QuerySearch.js";
 import { QuerySelect } from "../src/components/QuerySelect.js";
 import { QueryPagination } from "../src/components/QueryPagination.js";
+import { QueryRange } from "../src/components/QueryRange.js";
 import { QuerySort } from "../src/components/QuerySort.js";
 import { QueryReset } from "../src/components/QueryReset.js";
 
@@ -63,6 +64,39 @@ describe("QueryFiltersProvider + headless components", () => {
 
     act(() => setStatus(null));
     expect(screen.getByTestId("status").textContent).toBe("none");
+    expect(window.location.search).toBe("");
+  });
+
+  it("QueryRange exposes both sides, supports partial updates, and clears both together", () => {
+    let range!: {
+      setFrom: (v: string | null) => void;
+      setTo: (v: string | null) => void;
+      clear: () => void;
+    };
+
+    render(
+      <QueryFiltersProvider>
+        <QueryRange name="price">
+          {({ from, to, setFrom, setTo, clear }) => {
+            range = { setFrom, setTo, clear };
+            return <span data-testid="price">{`${from ?? "-"}..${to ?? "-"}`}</span>;
+          }}
+        </QueryRange>
+      </QueryFiltersProvider>,
+    );
+
+    expect(screen.getByTestId("price").textContent).toBe("-..-");
+
+    act(() => range.setFrom("10"));
+    expect(screen.getByTestId("price").textContent).toBe("10..-");
+    expect(window.location.search).toBe("?priceFrom=10");
+
+    act(() => range.setTo("100"));
+    expect(screen.getByTestId("price").textContent).toBe("10..100");
+    expect(window.location.search).toBe("?priceFrom=10&priceTo=100");
+
+    act(() => range.clear());
+    expect(screen.getByTestId("price").textContent).toBe("-..-");
     expect(window.location.search).toBe("");
   });
 

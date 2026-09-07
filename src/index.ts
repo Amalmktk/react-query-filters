@@ -2,6 +2,7 @@ export type {
   FilterValue,
   PaginationState,
   QueryState,
+  RangeValue,
   SortDirection,
   SortState,
 } from "./core/types.js";
@@ -9,7 +10,12 @@ export { parseQueryState } from "./core/parser.js";
 export type { ParseOptions } from "./core/parser.js";
 export { serializeQueryState } from "./core/serializer.js";
 export type { SerializeOptions } from "./core/serializer.js";
-export { createDefaultQueryState, isEqualQueryState } from "./core/utils.js";
+export {
+  createDefaultQueryState,
+  getRangeFilter,
+  getRangeFilterKeys,
+  isEqualQueryState,
+} from "./core/utils.js";
 
 export { useQueryFilters } from "./react/useQueryFilters.js";
 export type { UseQueryFiltersOptions, UseQueryFiltersResult } from "./react/useQueryFilters.js";
@@ -25,6 +31,8 @@ export type {
   QueryPaginationProps,
   QueryPaginationRenderProps,
 } from "./components/QueryPagination.js";
+export { QueryRange } from "./components/QueryRange.js";
+export type { QueryRangeProps, QueryRangeRenderProps } from "./components/QueryRange.js";
 export { QuerySort } from "./components/QuerySort.js";
 export type { QuerySortProps, QuerySortRenderProps } from "./components/QuerySort.js";
 export { QueryReset } from "./components/QueryReset.js";

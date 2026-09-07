@@ -3,7 +3,8 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { parseQueryState } from "../core/parser.js";
 import { serializeQueryState } from "../core/serializer.js";
-import type { FilterValue, QueryState, SortDirection } from "../core/types.js";
+import { getRangeFilter, getRangeFilterKeys } from "../core/utils.js";
+import type { FilterValue, QueryState, RangeValue, SortDirection } from "../core/types.js";
 
 export interface UseQueryFiltersOptions {
   /** Page number used when no `page` param is present, and restored to on filter/search changes. Defaults to 1. */
@@ -19,6 +20,12 @@ export interface UseQueryFiltersResult {
   setSearch: (search: string) => void;
   setFilter: (key: string, value: FilterValue) => void;
   removeFilter: (key: string) => void;
+  /** Sets one or both sides of a range filter (e.g. a date or price range). Omitting a side leaves it unchanged; passing `null` clears it. */
+  setRangeFilter: (key: string, range: Partial<RangeValue>) => void;
+  /** Clears both sides of a range filter. */
+  removeRangeFilter: (key: string) => void;
+  /** Reads a range filter back out of the current state (see `RangeValue`). */
+  getRangeFilter: (key: string) => RangeValue;
   /** Sets the sort field. Omitting `direction` toggles asc -> desc -> cleared for the given field. */
   setSort: (field: string, direction?: SortDirection) => void;
   clearSort: () => void;
@@ -115,6 +122,54 @@ export function useQueryFilters(
     [update, defaultPage],
   );
 
+  const setRangeFilter = useCallback(
+    (key: string, range: Partial<RangeValue>) => {
+      update((prev) => {
+        const { fromKey, toKey } = getRangeFilterKeys(key);
+        const filters = { ...prev.filters };
+
+        if (range.from !== undefined) {
+          if (range.from === null || range.from === "") delete filters[fromKey];
+          else filters[fromKey] = range.from;
+        }
+
+        if (range.to !== undefined) {
+          if (range.to === null || range.to === "") delete filters[toKey];
+          else filters[toKey] = range.to;
+        }
+
+        return {
+          ...prev,
+          filters,
+          pagination: { ...prev.pagination, page: defaultPage },
+        };
+      });
+    },
+    [update, defaultPage],
+  );
+
+  const removeRangeFilter = useCallback(
+    (key: string) => {
+      update((prev) => {
+        const { fromKey, toKey } = getRangeFilterKeys(key);
+        const filters = { ...prev.filters };
+        delete filters[fromKey];
+        delete filters[toKey];
+        return {
+          ...prev,
+          filters,
+          pagination: { ...prev.pagination, page: defaultPage },
+        };
+      });
+    },
+    [update, defaultPage],
+  );
+
+  const getRangeFilterValue = useCallback(
+    (key: string) => getRangeFilter(state.filters, key),
+    [state.filters],
+  );
+
   const setSort = useCallback(
     (field: string, direction?: SortDirection) => {
       update((prev) => {
@@ -167,6 +222,9 @@ export function useQueryFilters(
     setSearch,
     setFilter,
     removeFilter,
+    setRangeFilter,
+    removeRangeFilter,
+    getRangeFilter: getRangeFilterValue,
     setSort,
     clearSort,
     setPage,

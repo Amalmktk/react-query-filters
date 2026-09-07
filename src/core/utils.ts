@@ -1,4 +1,4 @@
-import type { PaginationState, QueryState } from "./types.js";
+import type { FilterValue, PaginationState, QueryState, RangeValue } from "./types.js";
 
 export interface DefaultQueryStateOptions {
   defaultPage?: number;
@@ -35,6 +35,26 @@ function isEqualSort(a: QueryState, b: QueryState): boolean {
   if (a.sort === b.sort) return true;
   if (!a.sort || !b.sort) return false;
   return a.sort.field === b.sort.field && a.sort.direction === b.sort.direction;
+}
+
+/** The two underlying filter keys a range filter named `key` reads/writes. */
+export function getRangeFilterKeys(key: string): { fromKey: string; toKey: string } {
+  return { fromKey: `${key}From`, toKey: `${key}To` };
+}
+
+/** Reads a range filter back out of a plain filters record (see `RangeValue`). */
+export function getRangeFilter(
+  filters: Record<string, FilterValue>,
+  key: string,
+): RangeValue {
+  const { fromKey, toKey } = getRangeFilterKeys(key);
+  const from = filters[fromKey];
+  const to = filters[toKey];
+
+  return {
+    from: typeof from === "string" ? from : null,
+    to: typeof to === "string" ? to : null,
+  };
 }
 
 function isEqualFilters(a: QueryState, b: QueryState): boolean {

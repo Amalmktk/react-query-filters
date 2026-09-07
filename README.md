@@ -145,6 +145,70 @@ Each component takes a `children` render function and passes back only the slice
 
 `QueryFiltersProvider` accepts the same options as `useQueryFilters` (`defaultPage`, `defaultPageSize`, `replace`).
 
+## Date & range filters
+
+A single date (or any single value) needs no special support — it's just a plain filter, same as `status` or `category`, via `<QuerySelect>` or `setFilter`:
+
+```tsx
+<QuerySelect name="eventDate">
+  {({ value, setValue }) => (
+    <input type="date" value={(value as string) ?? ""} onChange={(e) => setValue(e.target.value)} />
+  )}
+</QuerySelect>
+```
+
+produces `?eventDate=2024-01-15`.
+
+A **range** — two bounds, like a date range or a price range — is different: it's two ordinary filters under the hood, `${name}From` and `${name}To`. `setRangeFilter`/`getRangeFilter`/`removeRangeFilter` (and the `<QueryRange>` component) update both atomically in a single URL change, and either side can be left unset for an open-ended range (e.g. "$10 and up"):
+
+```tsx
+"use client";
+
+import { QueryFiltersProvider, QueryRange } from "react-query-filters";
+
+function ProductList() {
+  return (
+    <QueryFiltersProvider>
+      {/* Date range */}
+      <QueryRange name="createdAt">
+        {({ from, to, setFrom, setTo }) => (
+          <>
+            <input type="date" value={from ?? ""} onChange={(e) => setFrom(e.target.value)} />
+            <input type="date" value={to ?? ""} onChange={(e) => setTo(e.target.value)} />
+          </>
+        )}
+      </QueryRange>
+
+      {/* Numeric range */}
+      <QueryRange name="price">
+        {({ from, to, setFrom, setTo, clear }) => (
+          <>
+            <input type="number" value={from ?? ""} onChange={(e) => setFrom(e.target.value)} placeholder="Min price" />
+            <input type="number" value={to ?? ""} onChange={(e) => setTo(e.target.value)} placeholder="Max price" />
+            <button onClick={clear}>Clear price range</button>
+          </>
+        )}
+      </QueryRange>
+    </QueryFiltersProvider>
+  );
+}
+```
+
+produces URLs like `?createdAtFrom=2024-01-01&createdAtTo=2024-01-31&priceFrom=10&priceTo=100`.
+
+The library doesn't parse or validate dates/numbers itself — it stays a plain string in the URL either way, same as every other filter — so it has no date-parsing dependency and no opinion on `from <= to` ordering; validate that in your own UI if you need to.
+
+With the raw `useQueryFilters()` hook (no Provider), the equivalent is:
+
+```ts
+const { setRangeFilter, getRangeFilter, removeRangeFilter } = useQueryFilters();
+
+setRangeFilter("price", { from: "10", to: "100" }); // ?priceFrom=10&priceTo=100
+setRangeFilter("price", { from: "20" });             // updates only `from`, `to` untouched
+getRangeFilter("price");                             // { from: "20", to: "100" }
+removeRangeFilter("price");                          // clears both
+```
+
 ## API
 
 ### `useQueryFilters(options?)`
@@ -166,6 +230,9 @@ Returns:
 | `setSearch(value)` | Updates search and resets to the default page. |
 | `setFilter(key, value)` | Sets a filter and resets to the default page. |
 | `removeFilter(key)` | Removes a single filter. |
+| `setRangeFilter(key, range)` | Sets one or both sides of a range filter (`${key}From`/`${key}To`). Omitting a side leaves it unchanged; `null` clears it. Resets to the default page. |
+| `getRangeFilter(key)` | Reads a range filter back as `{ from, to }`. |
+| `removeRangeFilter(key)` | Clears both sides of a range filter in one update. |
 | `setSort(field, direction?)` | Sets sort. Omitting `direction` toggles `asc -> desc -> cleared` for that field. |
 | `clearSort()` | Clears the current sort. |
 | `setPage(page)` | Sets the current page. |
@@ -183,6 +250,7 @@ Returns:
 | `<QuerySearch>` | `{ value, setValue }` |
 | `<QuerySelect name="...">` | `{ value, setValue }` for that filter key |
 | `<QueryPagination>` | `{ page, pageSize, setPage, setPageSize }` |
+| `<QueryRange name="...">` | `{ from, to, setFrom, setTo, setRange, clear }` for that range |
 | `<QuerySort field="...">` | `{ direction, toggle }` — `toggle` cycles `asc -> desc -> cleared` |
 | `<QueryReset>` | `{ reset }` |
 
@@ -190,7 +258,7 @@ All of them must be rendered inside a `QueryFiltersProvider`.
 
 ### Core (framework-agnostic)
 
-`parseQueryState`, `serializeQueryState`, `createDefaultQueryState`, and `isEqualQueryState` operate on plain `URLSearchParams`/strings with no React dependency, and are exported for advanced use (e.g. server-side parsing of `searchParams` in a Next.js Server Component).
+`parseQueryState`, `serializeQueryState`, `createDefaultQueryState`, `isEqualQueryState`, `getRangeFilter`, and `getRangeFilterKeys` operate on plain `URLSearchParams`/strings/filter records with no React dependency, and are exported for advanced use (e.g. server-side parsing of `searchParams` in a Next.js Server Component).
 
 ## Filter value encoding
 
@@ -199,6 +267,7 @@ All of them must be rendered inside a `QueryFiltersProvider`.
 - `null`, `""`, and empty arrays are omitted from the URL when serialized.
 - Invalid `page`/`pageSize` values (non-numeric, zero, negative) fall back to their defaults; a decimal like `page=3.5` is truncated to `3`.
 - An unrecognized or missing sort `direction` (e.g. `sort=price` or `sort=price:up`) defaults to `desc`.
+- A range filter named `key` is two plain filters, `${key}From` and `${key}To` — no new URL syntax, so it parses/serializes with the same rules as everything else above.
 
 ## Environment & framework support
 
@@ -219,7 +288,6 @@ The framework-agnostic core (`parseQueryState`, `serializeQueryState`) has no br
 
 ## Roadmap
 
-- [ ] Date/range filters
 - [ ] Debounced search
 - [ ] `localStorage` persistence
 - [ ] Storybook documentation
