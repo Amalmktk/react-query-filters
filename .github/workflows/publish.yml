@@ -3,6 +3,13 @@ name: Publish to npm
 on:
   workflow_dispatch: {}
 
+permissions:
+  contents: read
+  # Lets this job request a short-lived GitHub OIDC token, which npm
+  # exchanges for a publish credential — see "Trusted Publisher" setup
+  # for this package on npmjs.com. No NPM_TOKEN secret needed.
+  id-token: write
+
 jobs:
   publish:
     runs-on: ubuntu-latest
@@ -14,10 +21,14 @@ jobs:
           node-version: 20.x
           registry-url: "https://registry.npmjs.org"
 
+      # Trusted publishing needs npm 11.5.1+; the version bundled with
+      # Node 20 on this runner is older.
+      - run: npm install -g npm@latest
+
       - run: npm ci
 
       # npm publish runs the prepublishOnly script first (typecheck + test +
       # build), same as a local publish — nothing goes out unverified.
-      - run: npm publish
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      # --provenance attaches a verifiable "built on GitHub Actions from
+      # this commit" attestation, shown on the npm package page.
+      - run: npm publish --provenance
