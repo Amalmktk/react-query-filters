@@ -18,12 +18,14 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 20.x
+          node-version: 22.x
           registry-url: "https://registry.npmjs.org"
 
-      # Trusted publishing needs npm 11.5.1+; the version bundled with
-      # Node 20 on this runner is older.
-      - run: npm install -g npm@latest
+      # Trusted publishing needs npm 11.5.1+; the version bundled with this
+      # runner's Node is older. Pinned to the 11.x line (not `@latest`) so a
+      # future npm major bump doesn't silently raise the Node engine
+      # requirement again and break this workflow the same way.
+      - run: npm install -g npm@11
 
       - run: npm ci
 
