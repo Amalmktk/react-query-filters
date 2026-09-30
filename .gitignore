@@ -3,3 +3,6 @@ dist
 coverage
 *.log
 .DS_Store
+
+# Local playground, not part of the package
+example/

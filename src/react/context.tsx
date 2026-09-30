@@ -3,10 +3,11 @@
 import { createContext, useContext, type ReactNode } from "react";
 import { useQueryFilters } from "./useQueryFilters.js";
 import type { UseQueryFiltersOptions, UseQueryFiltersResult } from "./useQueryFilters.js";
+import type { FilterSchema } from "../core/types.js";
 
 const QueryFiltersContext = createContext<UseQueryFiltersResult | null>(null);
 
-export interface QueryFiltersProviderProps extends UseQueryFiltersOptions {
+export interface QueryFiltersProviderProps extends UseQueryFiltersOptions<FilterSchema> {
   children: ReactNode;
 }
 
