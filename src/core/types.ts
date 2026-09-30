@@ -31,3 +31,47 @@ export interface QueryState {
   sort: SortState | null;
   pagination: PaginationState;
 }
+
+/**
+ * How a filter's URL value is parsed. Filters not listed in a schema keep the
+ * untyped behavior: a plain string, or a string array when it contains a comma.
+ */
+export type FilterType = "string" | "number" | "boolean" | "array";
+
+/** Maps filter keys to their `FilterType`, e.g. `{ price: "number", tags: "array" }`. */
+export type FilterSchema = Record<string, FilterType>;
+
+interface FilterTypeMap {
+  string: string;
+  number: number;
+  boolean: boolean;
+  array: string[];
+}
+
+/** The typed filters record a `FilterSchema` describes. Every key is optional, since it may be absent from the URL. */
+export type InferFilters<S extends FilterSchema> = {
+  [K in keyof S]?: FilterTypeMap[S[K]];
+};
+
+/** A `QueryState` whose `filters` are typed by a `FilterSchema` (untyped keys are still allowed). */
+export type TypedQueryState<S extends FilterSchema> = Omit<QueryState, "filters"> & {
+  filters: InferFilters<S> & Record<string, FilterValue>;
+};
+
+/** Custom URL param names for the reserved keys, e.g. `{ search: "q" }`. */
+export interface ParamNames {
+  search?: string;
+  sort?: string;
+  page?: string;
+  pageSize?: string;
+}
+
+/** Options shared by the parser, serializer, and hook that decide where state lives in the URL. */
+export interface QueryKeyOptions {
+  /** Namespaces every param as `${prefix}.${key}`, so several instances can share one URL. */
+  prefix?: string;
+  /** Renames the reserved params (`search`, `sort`, `page`, `pageSize`). */
+  paramNames?: ParamNames;
+  /** Parses and serializes the listed filters as typed values. */
+  schema?: FilterSchema;
+}

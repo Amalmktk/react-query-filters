@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import { useQueryFiltersContext } from "../react/context.js";
 
 export interface QuerySearchRenderProps {
+  /** The text as typed. With `searchDebounce`, it updates on every keystroke while the URL waits for typing to pause. */
   value: string;
   setValue: (value: string) => void;
 }
@@ -13,6 +14,6 @@ export interface QuerySearchProps {
 }
 
 export function QuerySearch({ children }: QuerySearchProps): ReactNode {
-  const { state, setSearch } = useQueryFiltersContext();
-  return children({ value: state.search, setValue: setSearch });
+  const { searchInput, setSearch } = useQueryFiltersContext();
+  return children({ value: searchInput, setValue: setSearch });
 }
